@@ -1,0 +1,23 @@
+# Demo buy card
+
+$ Achat d\'un pack
+
+> register jeanFamille 5251896983 ADULT
+EXPECT: Customer{id='4', name='jeanFamille', category='ADULT', creditCard=*}
+
+> add-to-cart jeanFamille FAMILY_PLAN 1
+EXPECT: 1xFAMILY_PLAN
+
+> validate-cart jeanFamille
+EXPECT: CliOrder[id=4, customerId=4, price=30.0, payReceiptId=RECEIPT:*, status=VALIDATED]
+
+$ Scan de carte de toute la famille (enfant et adultes)
+
+> scan-card gate1 4
+EXPECT: Sound: High sound
+> scan-card gate1 5
+EXPECT: Sound: High sound
+> scan-card gate1 6
+EXPECT: Sound: Low sound
+> scan-card gate1 7
+EXPECT: Sound: Low sound

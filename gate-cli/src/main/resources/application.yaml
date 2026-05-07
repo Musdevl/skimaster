@@ -1,0 +1,16 @@
+spring:
+  main:
+    banner-mode: off
+  shell:
+    interactive:
+      enabled: true
+
+server:
+  port: 8081
+
+skimaster:
+  gate:
+    baseurl: http://${GATE:localhost:8090}
+
+gate:
+  name: ${GATE_NAME:default_value}

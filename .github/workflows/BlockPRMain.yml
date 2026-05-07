@@ -1,0 +1,21 @@
+name: Block non-dev PRs to main
+
+on:
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  check-branch:
+    runs-on: self-hosted
+    steps:
+      - name: Fail if not from dev
+        run:  |
+          if [ "${{ github.base_ref }}" != "main" ]; then
+            echo "Skipping check, not targeting main"
+            exit 0
+          fi
+          if [ "${{ github.head_ref }}" != "dev" ]; then
+            echo "Only dev branch can merge into main"
+            exit 1
+          fi

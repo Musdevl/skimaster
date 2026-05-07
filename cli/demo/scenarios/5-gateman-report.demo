@@ -1,0 +1,15 @@
+# Demo gateman report
+
+$ Perchiste remonte un problème, ce qui ferme le portique
+
+> gate-issue gate1
+EXPECT: OK
+
+> dashboard
+
+$ Le portique est ré ouvert depuis le centre de contrôle
+
+> gate-open gate1
+EXPECT: OK
+
+> dashboard

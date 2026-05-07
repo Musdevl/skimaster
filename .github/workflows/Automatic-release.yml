@@ -1,0 +1,61 @@
+name: Auto Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    runs-on: self-hosted
+
+    steps:
+      - name: Generate token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install release-it
+        run: npm install -g release-it
+
+      - name: Determine version bump from PR title
+        id: version
+        run: |
+          # Le titre de la PR contient le type ex: "Release [minor]: Merge dev to main"
+          TITLE="${{ github.event.pull_request.title }}"
+          if [[ "$TITLE" == *"[major]"* ]]; then
+            echo "type=major" >> $GITHUB_OUTPUT
+          elif [[ "$TITLE" == *"[minor]"* ]]; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          elif [[ "$TITLE" == *"[patch]"* ]]; then
+            echo "type=patch" >> $GITHUB_OUTPUT
+          else
+            echo "type=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create release
+        if: steps.version.outputs.type != 'none'
+        run: |
+          release-it ${{ steps.version.outputs.type }} --ci --no-git.requireUpstream
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}

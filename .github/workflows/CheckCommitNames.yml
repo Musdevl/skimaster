@@ -1,0 +1,44 @@
+name: Check Commit Names
+
+on:
+  pull_request:
+    branches:
+      - "**"
+
+
+jobs:
+  check-branch:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check all commit messages format
+        run: |
+          regex='^((build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z-]+\))?:.+|Merge .+)$'
+          
+          
+          # Récupère tous les messages de commit de la PR
+          commits=$(git log --format=%s origin/${{ github.base_ref }}..HEAD)
+          
+          failed=0
+          while IFS= read -r commit_msg; do
+            if [[ ! "$commit_msg" =~ $regex ]]; then
+              echo "Commit invalide : $commit_msg"
+              failed=1
+            else
+              echo "Commit valide : $commit_msg"
+            fi
+          done <<< "$commits"
+          
+          if [ $failed -eq 1 ]; then
+            echo ""
+            echo "Format attendu : type(scope): description"
+            echo "Exemples : feat: add feature, fix(api): correct bug"
+            exit 1
+          fi
+          
+          echo ""
+          echo "Tous les commits respectent le format Conventional Commits"

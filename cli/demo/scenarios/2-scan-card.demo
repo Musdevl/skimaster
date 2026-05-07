@@ -1,0 +1,29 @@
+# Demo scan card
+
+$ Scan des cartes sur les deux gates du domaine 1 ( sans restriction )
+
+> scan-card gate1 1
+EXPECT: Sound: High sound
+> scan-card gate1 2
+EXPECT: Sound: High sound
+> scan-card gate2 3
+EXPECT: Sound: High sound
+
+$ Scan des cartes sur le domaine reservé aux débutant
+
+> scan-card gate3 1
+EXPECT: Sound: High sound
+> scan-card gate3 2
+EXPECT: Sound : Invalid Sound
+> scan-card gate3 3
+EXPECT: Sound : Invalid Sound
+
+$ Seul jean (id=1) peut passer
+$ Scan de carte pour un client avec SUPER_CARD
+
+> scan-card gate1 3
+EXPECT: Sound: High sound
+> scan-card gate2 3
+EXPECT: Sound: High sound
+> scan-card gate4 3
+EXPECT: Sound: High sound

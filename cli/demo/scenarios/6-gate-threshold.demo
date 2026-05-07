@@ -1,0 +1,14 @@
+# Demo Gate threshold
+
+$ Setup de la jauge depuis le centre de contrôle
+
+> set-gate-threshold gate1 2 10
+EXPECT: OK
+
+# TODO
+# > dashboard-watch 5
+
+$ Re ouverture du portique
+
+> gate-open gate1
+EXPECT: OK

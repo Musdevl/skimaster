@@ -1,0 +1,53 @@
+name: Create Release PR
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+
+jobs:
+  create-pr:
+    if: github.event.pull_request.merged == true
+    runs-on: self-hosted
+
+    steps:
+      - name: Generate token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Determine version bump from PR title
+        id: version
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          if [[ "$TITLE" == *"[major]"* ]]; then
+            echo "type=major" >> $GITHUB_OUTPUT
+          elif [[ "$TITLE" == *"[minor]"* ]]; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          elif [[ "$TITLE" == *"[patch]"* ]]; then
+            echo "type=patch" >> $GITHUB_OUTPUT
+          else
+            echo "type=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PR to main
+        if: steps.version.outputs.type != 'none'
+        uses: repo-sync/pull-request@v2
+        with:
+          github_token: ${{ steps.generate_token.outputs.token }}
+          source_branch: dev
+          destination_branch: main
+          pr_title: "Release [${{ steps.version.outputs.type }}]: Merge dev to main"
+          pr_body: |
+            Automated release PR.
+            Version bump: `${{ steps.version.outputs.type }}`
+            Merge this PR to trigger the release on main.

@@ -1,0 +1,280 @@
+services:
+  server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "8080:8080"
+    environment:
+      - BANK_WITH_PORT=bank-system:9090
+      - POSTGRES_HOST=postgres:5432
+    restart: always
+    depends_on:
+      bank-system:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --silent --fail localhost:8080/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  postgres:
+    image: postgres:18.1
+    container_name: db
+    environment:
+      - POSTGRES_PASSWORD=postgrespass
+      - POSTGRES_USER=postgresuser
+      - POSTGRES_DB=skimaster-db
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER" ]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  cli:
+    build:
+      context: ./cli
+      dockerfile: Dockerfile
+    container_name: cli
+    environment:
+      - SERVER_WITH_PORT=server:8080
+    depends_on:
+      server:
+        condition: service_healthy
+    volumes:
+      - ./cli/demo:/opt/app/demo
+    stdin_open: true
+    tty: true
+    healthcheck:
+      test: "curl --silent --fail localhost:8081/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  bank-system:
+    build:
+      context: ./bank
+      dockerfile: Dockerfile
+    container_name: bank
+    ports:
+      - "9090:9090"
+    healthcheck:
+      test: [ "CMD", "/nodejs/bin/node", "healthcheck.js" ]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  gate1:
+    build:
+      context: ./gate
+      dockerfile: Dockerfile
+    image: skimaster-gate:latest
+    container_name: gate1
+    ports:
+      - "8090:8090"
+    environment:
+      - BACKEND=backend:8080
+      - POSTGRES_HOST=postgres:5432
+      - GATE_NAME=gate1
+      - GATE_URL=http://gate1:8090
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --silent --fail localhost:8090/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  gate2:
+    image: skimaster-gate:latest
+    pull_policy: never
+    container_name: gate2
+    ports:
+      - "8091:8090"
+    environment:
+      - BACKEND=backend:8080
+      - POSTGRES_HOST=postgres:5432
+      - GATE_NAME=gate2
+      - GATE_URL=http://gate2:8090
+    restart: always
+    depends_on:
+      gate1:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --silent --fail localhost:8090/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  gate3:
+    image: skimaster-gate:latest
+    pull_policy: never
+    container_name: gate3
+    ports:
+      - "8092:8090"
+    environment:
+      - BACKEND=backend:8080
+      - POSTGRES_HOST=postgres:5432
+      - GATE_NAME=gate3
+      - GATE_URL=http://gate3:8090
+    restart: always
+    depends_on:
+      gate1:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --silent --fail localhost:8090/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  gate4:
+    image: skimaster-gate:latest
+    pull_policy: never
+    container_name: gate4
+    ports:
+      - "8093:8090"
+    environment:
+      - BACKEND=backend:8080
+      - POSTGRES_HOST=postgres:5432
+      - GATE_NAME=gate4
+      - GATE_URL=http://gate4:8090
+    restart: always
+    depends_on:
+      gate1:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --silent --fail localhost:8090/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  gate-cli-1:
+    build:
+      context: ./gate-cli
+      dockerfile: Dockerfile
+    image: skimaster-gate-cli:latest
+    container_name: gate-cli-1
+    environment:
+      - GATE=gate1:8090
+    depends_on:
+      gate1:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./gate-cli/demo:/opt/app/demo
+    healthcheck:
+      test: "curl --silent --fail localhost:8081/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  gate-cli-2:
+    image: skimaster-gate-cli:latest
+    pull_policy: never
+    container_name: gate-cli-2
+    environment:
+      - GATE=gate2:8090
+    depends_on:
+      gate-cli-1:
+        condition: service_healthy
+      gate2:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./gate-cli/demo:/opt/app/demo
+    healthcheck:
+      test: "curl --silent --fail localhost:8081/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  gate-cli-3:
+    image: skimaster-gate-cli:latest
+    pull_policy: never
+    container_name: gate-cli-3
+    environment:
+      - GATE=gate3:8090
+    depends_on:
+      gate-cli-1:
+        condition: service_healthy
+      gate3:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./gate-cli/demo:/opt/app/demo
+    healthcheck:
+      test: "curl --silent --fail localhost:8081/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  gate-cli-4:
+    image: skimaster-gate-cli:latest
+    pull_policy: never
+    container_name: gate-cli-4
+    environment:
+      - GATE=gate4:8090
+    depends_on:
+      gate-cli-1:
+        condition: service_healthy
+      gate4:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./gate-cli/demo:/opt/app/demo
+    healthcheck:
+      test: "curl --silent --fail localhost:8081/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  panel1:
+    build:
+      context: ./panel
+      dockerfile: Dockerfile
+    container_name: panel1
+    ports:
+      - "8050:8050"
+    environment:
+      - BACKEND=backend:8080
+      - POSTGRES_HOST=postgres:5432
+      - PANEL_NAME=panel1
+      - PANEL_URL=panel1:8050
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --silent --fail localhost:8050/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 120s

@@ -1,0 +1,33 @@
+name: Build and Publish Docker Image CI
+
+on:
+  pull_request:
+    branches: ["main"]
+    types: [closed]
+
+jobs:
+
+  build-and-push:
+    runs-on: self-hosted
+    steps:
+      - name: checkout 
+        uses: actions/checkout@v4
+      - name: build image
+        run: |
+          docker build ./backend -t ${{ secrets.DOCKER_HUB_USERNAME }}/pns-isa-devops-25-26-team-i-backend:latest
+          docker build ./bank -t ${{ secrets.DOCKER_HUB_USERNAME }}/pns-isa-devops-25-26-team-i-bank:latest
+          docker build ./gate -t ${{ secrets.DOCKER_HUB_USERNAME }}/pns-isa-devops-25-26-team-i-gate:latest
+          docker build ./cli -t ${{ secrets.DOCKER_HUB_USERNAME }}/pns-isa-devops-25-26-team-i-cli:latest
+          docker build ./gate-cli -t ${{ secrets.DOCKER_HUB_USERNAME }}/pns-isa-devops-25-26-team-i-gate-cli:latest
+          docker build ./panel -t ${{ secrets.DOCKER_HUB_USERNAME }}/pns-isa-devops-25-26-team-i-panel:latest
+        
+      - name: push image to docker hub
+        run: |
+          docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
+          
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/pns-isa-devops-25-26-team-i-backend:latest
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/pns-isa-devops-25-26-team-i-bank:latest
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/pns-isa-devops-25-26-team-i-gate:latest
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/pns-isa-devops-25-26-team-i-cli:latest
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/pns-isa-devops-25-26-team-i-gate-cli:latest
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/pns-isa-devops-25-26-team-i-panel:latest

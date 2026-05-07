@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: panel
+
+server:
+  port: 8050
+
+skimaster:
+  simulation:
+    # tps reel * accel
+    acceleration: 60
+  host:
+    baseurl: http://${BACKEND:localhost:8080}
+
+panel:
+  uri: http://${PANEL_URL:localhost:8090}
+  name: ${PANEL_NAME:default_value}

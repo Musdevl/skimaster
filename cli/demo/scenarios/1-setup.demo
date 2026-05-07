@@ -1,0 +1,83 @@
+# Demo: Setup
+
+$ Creation des domaines
+
+> create-domain marmotte
+EXPECT: Domain[id=1, name=marmotte]
+> create-domain loup
+EXPECT: Domain[id=2, name=loup]
+> create-domain renard
+EXPECT: Domain[id=3, name=renard]
+
+$ Ajout du plan BEGINNER_PASS au domain loup
+
+> add-plan-domain 2 BEGINNER_PASS
+# TODO log for EXPECT
+
+$ Enregistrement de portiques
+
+> register-gate gate1 1
+# TODO log for EXPECT
+> register-gate gate2 1
+# TODO log for EXPECT
+> register-gate gate3 2
+# TODO log for EXPECT
+> register-gate gate4 3
+# TODO log for EXPECT
+
+$ Enregistrement du panneau
+
+> register-panel panel1
+
+$ Enregistrement des portiques sur le panneau
+
+> add-panel-gate panel1 gate1
+EXPECT: Panel Gate Status saved successfully
+> add-panel-gate panel1 gate2
+EXPECT: Panel Gate Status saved successfully
+> add-panel-gate panel1 gate3
+EXPECT: Panel Gate Status saved successfully
+> add-panel-gate panel1 gate4
+EXPECT: Panel Gate Status saved successfully
+
+$ Creation de comptes adultes
+
+> register jean 5251896983 ADULT
+EXPECT: Customer{id='1', name='jean', category='ADULT', creditCard='5251896983'}
+> register pierre 5251896983 ADULT
+EXPECT: Customer{id='2', name='pierre', category='ADULT', creditCard='5251896983'}
+> register paul 5251896983 ADULT
+EXPECT: Customer{id='3', name='paul', category='ADULT', creditCard='5251896983'}
+
+$ Achat de forfaits
+
+> add-to-cart jean BEGINNER_PASS 1
+EXPECT: 1xBEGINNER_PASS
+> validate-cart jean
+EXPECT: CliOrder[id=1, customerId=1, price=15.0, payReceiptId=RECEIPT:*, status=VALIDATED]
+
+> add-to-cart pierre BASIC_PLAN 1
+EXPECT: 1xBASIC_PLAN
+> validate-cart pierre
+EXPECT: CliOrder[id=2, customerId=2, price=10.0, payReceiptId=RECEIPT:*, status=VALIDATED]
+
+> add-to-cart paul SUPER_CARD 1
+EXPECT: 1xSUPER_CARD
+> validate-cart paul
+EXPECT: CliOrder[id=3, customerId=3, price=15.0, payReceiptId=RECEIPT:*, status=VALIDATED]
+
+$ Ouverture des portiques
+
+> gate-open gate1
+EXPECT: OK
+> gate-open gate2
+EXPECT: OK
+> gate-open gate3
+EXPECT: OK
+> gate-open gate4
+EXPECT: OK
+
+$ Envoie initial des cartes nfc sur les portiques
+
+> setup-gates-cards
+# TODO log for EXPECT
